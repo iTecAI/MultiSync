@@ -77,10 +77,14 @@ class Node:
                     ret[data[1]] = data[2]
         
         if name:
-            try:
-                return ret[name]
-            except KeyError:
-                raise KeyError(name+' is not broadcasting.')
+            if type(name) == list:
+                ret = {i:ret[i] for i in ret.keys() if i in name}
+                return ret
+            else:
+                try:
+                    return ret[name]
+                except KeyError:
+                    raise KeyError(name+' is not broadcasting.')
         else:
             return ret
 
