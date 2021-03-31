@@ -6,7 +6,7 @@ import logging
 import socket
 import copy
 import os
-import xmlrpc.client as xmlc
+from rpc_client import Client
 
 # Constants
 _allowed = ['central','wireless']
@@ -29,11 +29,26 @@ class MultiSync: # Main MultiSync class
                 protocol=config['wireless']['network']
             )
             logging.info(
-                f"Started local p2p node on ports [{str(config['wireless']['server_port'])}, {str(config['wireless']['client_port'])}] in network {config['wireless']['network']}."
+                f"Started local p2p node on ports [{str(config['wireless']['server_port'])}, {str(config['wireless']['client_port'])}] in network {config['wireless']['network']}. Discovered {str(len(self.p2p_node.discover(discover_self=True)))} peers in network."
             )
         else:
             logging.info('Local P2P Connections Disabled.')
             self.p2p_node = None
+        if 'central' in self.methods:
+            logging.info(f'Starting RPC Command connection to {str(config["central"]["server"])} on MultiSync Network {config["central"]["network"]}.')
+            self.rpc_client = Client({
+                'server_url':f'http://{config["central"]["server"][0]}:{str(config["central"]["server"][1])}',
+                'key':config["central"]["key"]
+            })
+            inf = self.rpc_client.get_module_info(key='multisync')
+            if 'result' in inf.keys():
+                if inf['result'] == 'key not found':
+                    pass
+            logging.info(f'Loaded RPC Command connection to {str(config["central"]["server"])} on MultiSync Network {config["central"]["network"]}.')
+        else:
+            logging.info('Central Server Connections Disabled.')
+            self.rpc_client = None
+
         logging.debug('\n - '.join([
             'MultiSync Setup Complete. Details:',
             f'TLDs (Processed): [{", ".join(self.tlds)}]',

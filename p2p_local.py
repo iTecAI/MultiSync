@@ -62,7 +62,7 @@ class Node:
         self.discoverer.start()
         sleep(timer+3)
 
-    def discover(self,name=None,timeout=5):
+    def discover(self,name=None,timeout=5,discover_self=False):
         s = socket(AF_INET, SOCK_DGRAM) #create UDP socket
         s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         s.bind(('', self.ports[1]))
@@ -73,7 +73,7 @@ class Node:
             data = str(data)[2:].strip("'")
             if data.startswith(self.protocol):
                 data = data.split('|')
-                if data[1] != self.advertiser.name:
+                if data[1] != self.advertiser.name or discover_self:
                     ret[data[1]] = data[2]
         
         if name:
